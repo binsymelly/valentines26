@@ -12,8 +12,8 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/404"} component={NotFound} />
-      {/* Final fallback route */}
-      <Route component={NotFound} />
+      {/* Fallback route - render Home for any unmatched paths */}
+      <Route component={Home} />
     </Switch>
   );
 }
