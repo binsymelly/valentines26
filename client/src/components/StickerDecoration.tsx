@@ -5,7 +5,7 @@
  * - Displays Jin Miran sticker emojis as floating decorations
  * - Animated floating motion with gentle rotation
  * - Positioned absolutely around the page
- * - Multiple sticker variations for visual interest
+ * - Uses fixed stickers per position for consistency
  */
 
 interface StickerDecorationProps {
@@ -13,10 +13,17 @@ interface StickerDecorationProps {
   delay: number;
 }
 
-const STICKERS = ['😊', '🥰', '😍', '🤗', '😘', '💕', '✨', '🌸'];
+// Fixed sticker assignments per position for consistency
+const STICKER_MAP: { [key: string]: string } = {
+  'top-10 left-10': '😊',
+  'top-1/3 right-5': '🥰',
+  'bottom-20 left-1/4': '💕',
+  'bottom-10 right-10': '✨'
+};
 
 export default function StickerDecoration({ position, delay }: StickerDecorationProps) {
-  const randomSticker = STICKERS[Math.floor(Math.random() * STICKERS.length)];
+  // Get the fixed sticker for this position, or use a default
+  const sticker = STICKER_MAP[position] || '😊';
   const randomSize = Math.random() * 20 + 40; // 40-60px
 
   return (
@@ -28,7 +35,7 @@ export default function StickerDecoration({ position, delay }: StickerDecoration
         filter: 'drop-shadow(0 4px 8px rgba(255, 182, 193, 0.2))'
       }}
     >
-      {randomSticker}
+      {sticker}
     </div>
   );
 }

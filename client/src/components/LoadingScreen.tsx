@@ -5,35 +5,60 @@ import { useEffect, useState } from 'react';
  * 
  * Design: Playful Kawaii Minimalism
  * - Shows a loading animation with romantic messaging
- * - Displays a video placeholder (user will upload their video)
+ * - Displays a video that plays for its full duration
  * - Animated loading bar with soft colors
  * - Celebratory message
  */
 
 export default function LoadingScreen() {
   const [progress, setProgress] = useState(0);
+  const [videoDuration, setVideoDuration] = useState(3); // Default 3 seconds
 
   useEffect(() => {
+    // Simulate progress based on video duration
+    const startTime = Date.now();
     const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 90) return prev;
-        return prev + Math.random() * 30;
-      });
-    }, 300);
+      const elapsed = (Date.now() - startTime) / 1000;
+      const newProgress = (elapsed / videoDuration) * 100;
+      
+      if (newProgress >= 100) {
+        setProgress(100);
+        clearInterval(interval);
+      } else {
+        setProgress(newProgress);
+      }
+    }, 100);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [videoDuration]);
+
+  const handleVideoLoadedMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const video = e.currentTarget;
+    setVideoDuration(video.duration);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FFF9F7] via-[#FFE6F0] to-[#E6D5F0] flex flex-col items-center justify-center px-4">
-      {/* Video Container Placeholder */}
+      {/* Video Container */}
       <div className="w-full max-w-2xl mb-12 animate-fade-in-up">
         <div className="aspect-video bg-gradient-to-br from-[#FFB6C1] to-[#E6D5F0] rounded-3xl shadow-soft flex items-center justify-center overflow-hidden">
-          {/* Video will be embedded here - for now showing placeholder */}
-          <div className="text-center">
-            <div className="text-6xl mb-4">🎥</div>
-            <p className="text-white text-xl font-semibold">Loading something special...</p>
-          </div>
+          {/* Video element - replace with your video path */}
+          <video
+            className="w-full h-full object-cover"
+            autoPlay
+            muted
+            onLoadedMetadata={handleVideoLoadedMetadata}
+            style={{
+              display: 'block'
+            }}
+          >
+            {/* Replace this with your actual video path */}
+            <source src="/videos/surprise.mp4" type="video/mp4" />
+            <div className="text-center text-white">
+              <div className="text-6xl mb-4">🎥</div>
+              <p className="text-xl font-semibold">Loading something special...</p>
+            </div>
+          </video>
         </div>
       </div>
 

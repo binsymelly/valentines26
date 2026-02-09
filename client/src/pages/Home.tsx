@@ -86,7 +86,7 @@ export default function Home() {
   const [isCorrect, setIsCorrect] = useState(false);
   const [completedQuestions, setCompletedQuestions] = useState<number[]>([]);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const evasiveButtonRef = useRef<HTMLButtonElement | null>(null);
+  const evasiveButtonRef = useRef<HTMLDivElement | null>(null);
 
   // Track mouse position for evasive button
   useEffect(() => {
@@ -220,7 +220,7 @@ export default function Home() {
             isCorrect={isCorrect}
             onAnswerSelect={handleAnswerSelect}
             isLastQuestion={currentQuestionIndex === QUIZ_QUESTIONS.length - 1}
-            evasiveButtonRef={evasiveButtonRef as React.RefObject<HTMLButtonElement>}
+            evasiveButtonRef={evasiveButtonRef as React.RefObject<HTMLDivElement>}
           />
         </div>
 

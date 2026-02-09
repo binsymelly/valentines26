@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 /**
  * QuizQuestion Component
@@ -25,7 +25,8 @@ interface QuizQuestionProps {
   isCorrect: boolean;
   onAnswerSelect: (answerIndex: number) => void;
   isLastQuestion: boolean;
-  evasiveButtonRef?: React.RefObject<HTMLButtonElement>;
+  evasiveButtonRef?: React.RefObject<HTMLDivElement>;
+  mousePos?: { x: number; y: number };
 }
 
 export default function QuizQuestion({
@@ -35,9 +36,45 @@ export default function QuizQuestion({
   isCorrect,
   onAnswerSelect,
   isLastQuestion,
-  evasiveButtonRef
+  evasiveButtonRef,
+  mousePos = { x: 0, y: 0 }
 }: QuizQuestionProps) {
   const [celebrationIndex, setCelebrationIndex] = useState<number | null>(null);
+  const [evasiveOffset, setEvasiveOffset] = useState({ x: 0, y: 0 });
+
+  // Update evasive button position based on mouse proximity
+  useEffect(() => {
+    if (!isLastQuestion || selectedAnswer !== null) {
+      setEvasiveOffset({ x: 0, y: 0 });
+      return;
+    }
+
+    if (evasiveButtonRef?.current) {
+      const button = evasiveButtonRef.current;
+      const rect = button.getBoundingClientRect();
+      const buttonCenterX = rect.left + rect.width / 2;
+      const buttonCenterY = rect.top + rect.height / 2;
+
+      const distX = mousePos.x - buttonCenterX;
+      const distY = mousePos.y - buttonCenterY;
+      const distance = Math.sqrt(distX * distX + distY * distY);
+
+      // If mouse is within 200px, move the button away aggressively
+      if (distance < 200) {
+        const angle = Math.atan2(distY, distY);
+        const moveDistance = Math.max(200 - distance, 0);
+        const moveX = Math.cos(angle) * moveDistance * 2;
+        const moveY = Math.sin(angle) * moveDistance * 2;
+
+        setEvasiveOffset({
+          x: -moveX,
+          y: -moveY
+        });
+      } else {
+        setEvasiveOffset({ x: 0, y: 0 });
+      }
+    }
+  }, [mousePos, isLastQuestion, selectedAnswer, evasiveButtonRef]);
 
   const handleAnswerClick = (index: number) => {
     if (selectedAnswer === null) {
@@ -59,30 +96,40 @@ export default function QuizQuestion({
 
         {/* Options Grid */}
         <div className="space-y-4 mb-8">
-          {question.options.map((option, index) => (
-            <div key={index} className="relative">
-              {isLastQuestion && index === 1 ? (
-                // Evasive button for "someone else"
-                <button
+          {question.options.map((option, index) => {
+            // Evasive button for the last question's second option
+            if (isLastQuestion && index === 1) {
+              return (
+                <div
+                  key={index}
+                  className="relative w-full h-16"
                   ref={evasiveButtonRef}
-                  onClick={() => handleAnswerClick(index)}
-                  disabled={selectedAnswer !== null}
-                  className={`
-                    w-full py-4 px-6 rounded-2xl font-semibold text-lg
-                    transition-all duration-300 ease-out
-                    ${selectedAnswer === null ? 'cursor-pointer' : 'cursor-default'}
-                    ${
-                      selectedAnswer === index
-                        ? 'bg-red-200 text-red-800'
-                        : 'bg-[#FFE6F0] text-[#2C2C2C] hover:bg-[#FFD4E5]'
-                    }
-                    ${showFeedback && index === question.correctAnswer ? 'ring-4 ring-[#FFB6C1]' : ''}
-                    disabled:opacity-50
-                  `}
+                  style={{
+                    transform: `translate(${evasiveOffset.x}px, ${evasiveOffset.y}px)`,
+                    transition: selectedAnswer !== null ? 'none' : 'transform 0.1s ease-out',
+                    pointerEvents: selectedAnswer !== null ? 'none' : 'auto'
+                  }}
                 >
-                  {option}
-                </button>
-              ) : (
+                  <button
+                    onClick={() => handleAnswerClick(index)}
+                    disabled={selectedAnswer !== null}
+                    className={`
+                      w-full py-4 px-6 rounded-2xl font-semibold text-lg
+                      transition-all duration-300
+                      ${selectedAnswer === null ? 'cursor-pointer' : 'cursor-default'}
+                      bg-[#FFE6F0] text-[#2C2C2C] hover:bg-[#FFD4E5]
+                      disabled:opacity-50
+                    `}
+                  >
+                    {option}
+                  </button>
+                </div>
+              );
+            }
+
+            // Regular buttons for all other options
+            return (
+              <div key={index} className="relative">
                 <Button
                   onClick={() => handleAnswerClick(index)}
                   disabled={selectedAnswer !== null}
@@ -106,9 +153,9 @@ export default function QuizQuestion({
                 >
                   {option}
                 </Button>
-              )}
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
 
         {/* Feedback Message */}
