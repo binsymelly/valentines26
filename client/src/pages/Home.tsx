@@ -4,6 +4,7 @@ import QuizQuestion from '@/components/QuizQuestion';
 import LoadingScreen from '@/components/LoadingScreen';
 import FinalMessage from '@/components/FinalMessage';
 import StickerDecoration from '@/components/StickerDecoration';
+import StartScreen from '@/components/StartScreen';
 
 /**
  * Playful Kawaii Minimalism - Valentine's Day Quiz
@@ -14,6 +15,7 @@ import StickerDecoration from '@/components/StickerDecoration';
  * - Gentle floating animations and playful interactions
  * - Asymmetric layout with generous whitespace
  * - Celebration animations on correct answers
+ * - Media support (images/videos) for personalized memories
  */
 
 interface QuizQuestion {
@@ -21,8 +23,11 @@ interface QuizQuestion {
   question: string;
   options: string[];
   correctAnswer: number;
-  images?: string[];
   message?: string;
+  media?: {
+    type: 'image' | 'video';
+    src: string;
+  }[];
 }
 
 const QUIZ_QUESTIONS: QuizQuestion[] = [
@@ -32,6 +37,11 @@ const QUIZ_QUESTIONS: QuizQuestion[] = [
     options: ["Huashan", "Emeishan", "Huangshan"],
     correctAnswer: 2,
     message: "You remembered! That was such an epic moment! 🕷️"
+    // Uncomment and add your media:
+    // media: [
+    //   { type: 'image', src: '/images/huangshan1.jpg' },
+    //   { type: 'image', src: '/images/huangshan2.jpg' }
+    // ]
   },
   {
     id: 2,
@@ -39,6 +49,9 @@ const QUIZ_QUESTIONS: QuizQuestion[] = [
     options: ["Turkey Market", "China Mountain", "Japan Lake"],
     correctAnswer: 0,
     message: "Those chippies were absolutely amazing! 🍟"
+    // media: [
+    //   { type: 'image', src: '/images/chippies.jpg' }
+    // ]
   },
   {
     id: 3,
@@ -46,6 +59,9 @@ const QUIZ_QUESTIONS: QuizQuestion[] = [
     options: ["Spill drink", "Vomit", "Boil water"],
     correctAnswer: 1,
     message: "Oh no, that was quite the adventure! 🚌"
+    // media: [
+    //   { type: 'image', src: '/images/bus_memory.jpg' }
+    // ]
   },
   {
     id: 4,
@@ -53,6 +69,9 @@ const QUIZ_QUESTIONS: QuizQuestion[] = [
     options: ["Chengdu", "Japan", "USA"],
     correctAnswer: 0,
     message: "Chengdu was absolutely scorching! 🔥"
+    // media: [
+    //   { type: 'image', src: '/images/chengdu.jpg' }
+    // ]
   },
   {
     id: 5,
@@ -60,6 +79,9 @@ const QUIZ_QUESTIONS: QuizQuestion[] = [
     options: ["Zipline", "Hot-air balloon", "Eating eel"],
     correctAnswer: 1,
     message: "That hot-air balloon ride was unforgettable! 🎈"
+    // media: [
+    //   { type: 'video', src: '/videos/balloon.mp4' }
+    // ]
   },
   {
     id: 6,
@@ -67,6 +89,9 @@ const QUIZ_QUESTIONS: QuizQuestion[] = [
     options: ["Alien", "Goodgood", "Zaneh"],
     correctAnswer: 1,
     message: "Goodgood is our precious little one! 👶"
+    // media: [
+    //   { type: 'image', src: '/images/goodgood.jpg' }
+    // ]
   },
   {
     id: 7,
@@ -78,6 +103,7 @@ const QUIZ_QUESTIONS: QuizQuestion[] = [
 ];
 
 export default function Home() {
+  const [hasStarted, setHasStarted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showLoading, setShowLoading] = useState(false);
   const [showFinal, setShowFinal] = useState(false);
@@ -97,32 +123,6 @@ export default function Home() {
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
-
-  // Evasive button logic for the last question
-  useEffect(() => {
-    if (currentQuestionIndex === 6 && evasiveButtonRef.current) {
-      const button = evasiveButtonRef.current;
-      const rect = button.getBoundingClientRect();
-      const buttonCenterX = rect.left + rect.width / 2;
-      const buttonCenterY = rect.top + rect.height / 2;
-      
-      const distX = mousePos.x - buttonCenterX;
-      const distY = mousePos.y - buttonCenterY;
-      const distance = Math.sqrt(distX * distX + distY * distY);
-      
-      // If mouse is within 150px, move the button away
-      if (distance < 150) {
-        const angle = Math.atan2(distY, distX);
-        const moveDistance = 150 - distance;
-        const moveX = Math.cos(angle) * moveDistance * 1.5;
-        const moveY = Math.sin(angle) * moveDistance * 1.5;
-        
-        button.style.transform = `translate(${-moveX}px, ${-moveY}px)`;
-      } else {
-        button.style.transform = 'translate(0, 0)';
-      }
-    }
-  }, [mousePos, currentQuestionIndex]);
 
   const handleAnswerSelect = (answerIndex: number) => {
     if (selectedAnswer !== null) return; // Prevent multiple selections
@@ -167,6 +167,10 @@ export default function Home() {
 
   if (showFinal) {
     return <FinalMessage />;
+  }
+
+  if (!hasStarted) {
+    return <StartScreen onStart={() => setHasStarted(true)} />;
   }
 
   const currentQuestion = QUIZ_QUESTIONS[currentQuestionIndex];
@@ -221,6 +225,7 @@ export default function Home() {
             onAnswerSelect={handleAnswerSelect}
             isLastQuestion={currentQuestionIndex === QUIZ_QUESTIONS.length - 1}
             evasiveButtonRef={evasiveButtonRef as React.RefObject<HTMLDivElement>}
+            mousePos={mousePos}
           />
         </div>
 

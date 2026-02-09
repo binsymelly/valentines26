@@ -9,6 +9,7 @@ import { useState, useEffect, useRef } from 'react';
  * - Animated question text with fade-in effect
  * - Multiple choice buttons with hover effects
  * - Feedback messages with sticker reactions
+ * - Media support (images/videos) for correct answers
  * - Special handling for the evasive "someone else" button
  */
 
@@ -19,6 +20,10 @@ interface QuizQuestionProps {
     options: string[];
     correctAnswer: number;
     message?: string;
+    media?: {
+      type: 'image' | 'video';
+      src: string;
+    }[];
   };
   selectedAnswer: number | null;
   showFeedback: boolean;
@@ -65,14 +70,15 @@ export default function QuizQuestion({
       const button = evasiveButtonRef.current;
       const rect = button.getBoundingClientRect();
       const buttonCenterY = rect.top + rect.height / 2;
+      const SAFE_DISTANCE = 100; // Keep button 100px away from cursor
 
       const distY = mousePos.y - buttonCenterY;
       const distance = Math.abs(distY);
 
-      // If mouse is within 150px vertically, move the button away
-      if (distance < 150) {
-        const moveDistance = Math.max(150 - distance, 0);
-        const moveY = distY > 0 ? -moveDistance * 1.5 : moveDistance * 1.5;
+      // If mouse is within safe distance, move the button away
+      if (distance < SAFE_DISTANCE) {
+        // Move button to maintain 100px distance
+        const moveY = distY > 0 ? -(SAFE_DISTANCE + 20) : SAFE_DISTANCE + 20;
 
         setEvasiveOffset({
           x: 0,
@@ -166,7 +172,7 @@ export default function QuizQuestion({
           })}
         </div>
 
-        {/* Feedback Message */}
+        {/* Feedback Message with Media */}
         {showFeedback && (
           <div className={`
             mt-8 p-6 rounded-2xl text-center animate-fade-in-up
@@ -176,6 +182,31 @@ export default function QuizQuestion({
                 : 'bg-red-100 border-2 border-red-300'
             }
           `}>
+            {/* Media Gallery */}
+            {isCorrect && question.media && question.media.length > 0 && (
+              <div className="mb-6 space-y-4">
+                {question.media.map((media, idx) => (
+                  <div key={idx} className="w-full">
+                    {media.type === 'image' ? (
+                      <img
+                        src={media.src}
+                        alt={`Memory ${idx + 1}`}
+                        className="w-full rounded-2xl shadow-soft object-cover max-h-96"
+                      />
+                    ) : (
+                      <video
+                        src={media.src}
+                        controls
+                        className="w-full rounded-2xl shadow-soft max-h-96"
+                        style={{ objectFit: 'cover' }}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Message Text */}
             <p className={`text-lg font-semibold ${isCorrect ? 'text-[#2C2C2C]' : 'text-red-700'}`}>
               {isCorrect ? (
                 <>
