@@ -41,15 +41,15 @@ export default function StartScreen({ onStart }: StartScreenProps) {
 
         {/* Description Card */}
         <div className="bg-white rounded-3xl shadow-soft p-8 md:p-12 mb-8">
-          <p className="text-lg text-[#2C2C2C] leading-relaxed mb-6">
-            I've created a little quiz to verify that you're really you. 
-            It's all about our amazing memories together! 
-          </p>
-          
-          <p className="text-lg text-[#666666] leading-relaxed">
-            Answer the questions correctly and you'll unlock some special surprises. 
-            Good luck! 🎉
-          </p>
+        <p className="text-lg text-[#2C2C2C] leading-relaxed mb-6">
+          I've created a little quiz to verify that you're really you. 
+          It's all about our amazing memories together! 
+        </p>
+        
+        <p className="text-lg text-[#666666] leading-relaxed">
+          Answer the questions correctly and you'll unlock your Valentine's Day message. 
+          Good luck! 🎉
+        </p>
         </div>
 
         {/* Start Button */}

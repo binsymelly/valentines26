@@ -111,18 +111,7 @@ export default function Home() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [completedQuestions, setCompletedQuestions] = useState<number[]>([]);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const evasiveButtonRef = useRef<HTMLDivElement | null>(null);
-
-  // Track mouse position for evasive button
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePos({ x: e.clientX, y: e.clientY });
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  const evasiveButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const handleAnswerSelect = (answerIndex: number) => {
     if (selectedAnswer !== null) return; // Prevent multiple selections
@@ -224,8 +213,7 @@ export default function Home() {
             isCorrect={isCorrect}
             onAnswerSelect={handleAnswerSelect}
             isLastQuestion={currentQuestionIndex === QUIZ_QUESTIONS.length - 1}
-            evasiveButtonRef={evasiveButtonRef as React.RefObject<HTMLDivElement>}
-            mousePos={mousePos}
+            evasiveButtonRef={evasiveButtonRef as React.RefObject<HTMLButtonElement>}
           />
         </div>
 

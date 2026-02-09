@@ -10,7 +10,7 @@ import { useState, useEffect, useRef } from 'react';
  * - Multiple choice buttons with hover effects
  * - Feedback messages with sticker reactions
  * - Media support (images/videos) for correct answers
- * - Special handling for the evasive "someone else" button
+ * - Evasive button that moves away on mouseover (inspired by roosafeed/Evasive-Button)
  */
 
 interface QuizQuestionProps {
@@ -30,8 +30,7 @@ interface QuizQuestionProps {
   isCorrect: boolean;
   onAnswerSelect: (answerIndex: number) => void;
   isLastQuestion: boolean;
-  evasiveButtonRef?: React.RefObject<HTMLDivElement>;
-  mousePos?: { x: number; y: number };
+  evasiveButtonRef?: React.RefObject<HTMLButtonElement>;
 }
 
 export default function QuizQuestion({
@@ -41,54 +40,27 @@ export default function QuizQuestion({
   isCorrect,
   onAnswerSelect,
   isLastQuestion,
-  evasiveButtonRef,
-  mousePos = { x: 0, y: 0 }
+  evasiveButtonRef
 }: QuizQuestionProps) {
   const [celebrationIndex, setCelebrationIndex] = useState<number | null>(null);
-  const [evasiveOffset, setEvasiveOffset] = useState({ x: 0, y: 0 });
-  const prevMousePosRef = useRef({ x: 0, y: 0 });
+  const [evasivePosition, setEvasivePosition] = useState({ x: 0, y: 0 });
+  const localEvasiveRef = useRef<HTMLButtonElement | null>(null);
+  const buttonRef = evasiveButtonRef || localEvasiveRef;
 
-  // Update evasive button position based on mouse proximity
-  useEffect(() => {
-    // Only run this effect when on the last question and answer not selected
-    if (!isLastQuestion || selectedAnswer !== null) {
-      setEvasiveOffset({ x: 0, y: 0 });
-      return;
-    }
+  // Handle evasive button mouseover
+  const handleEvasiveMouseOver = () => {
+    if (selectedAnswer !== null || !isLastQuestion) return;
 
-    // Skip if mouse position hasn't changed
-    if (
-      prevMousePosRef.current.x === mousePos.x &&
-      prevMousePosRef.current.y === mousePos.y
-    ) {
-      return;
-    }
+    // Generate random position to move to
+    const randomX = (Math.random() - 0.5) * 300; // -150 to 150px
+    const randomY = (Math.random() - 0.5) * 300; // -150 to 150px
+    
+    setEvasivePosition({ x: randomX, y: randomY });
+  };
 
-    prevMousePosRef.current = mousePos;
-
-    if (evasiveButtonRef?.current) {
-      const button = evasiveButtonRef.current;
-      const rect = button.getBoundingClientRect();
-      const buttonCenterY = rect.top + rect.height / 2;
-      const SAFE_DISTANCE = 100; // Keep button 100px away from cursor
-
-      const distY = mousePos.y - buttonCenterY;
-      const distance = Math.abs(distY);
-
-      // If mouse is within safe distance, move the button away
-      if (distance < SAFE_DISTANCE) {
-        // Move button to maintain 100px distance
-        const moveY = distY > 0 ? -(SAFE_DISTANCE + 20) : SAFE_DISTANCE + 20;
-
-        setEvasiveOffset({
-          x: 0,
-          y: moveY
-        });
-      } else {
-        setEvasiveOffset({ x: 0, y: 0 });
-      }
-    }
-  }, [mousePos.x, mousePos.y, isLastQuestion, selectedAnswer, evasiveButtonRef]);
+  const handleEvasiveMouseLeave = () => {
+    setEvasivePosition({ x: 0, y: 0 });
+  };
 
   const handleAnswerClick = (index: number) => {
     if (selectedAnswer === null) {
@@ -114,30 +86,27 @@ export default function QuizQuestion({
             // Evasive button for the last question's second option
             if (isLastQuestion && index === 1) {
               return (
-                <div
+                <button
                   key={index}
-                  className="relative w-full"
-                  ref={evasiveButtonRef}
+                  ref={buttonRef}
+                  onClick={() => handleAnswerClick(index)}
+                  onMouseOver={handleEvasiveMouseOver}
+                  onMouseLeave={handleEvasiveMouseLeave}
+                  disabled={selectedAnswer !== null}
+                  className={`
+                    w-full py-3 px-4 rounded-2xl font-semibold text-base
+                    transition-all duration-200 ease-out
+                    ${selectedAnswer === null ? 'cursor-pointer' : 'cursor-default'}
+                    bg-[#FFE6F0] text-[#2C2C2C] hover:bg-[#FFD4E5]
+                    disabled:opacity-50 relative
+                  `}
                   style={{
-                    transform: `translateY(${evasiveOffset.y}px)`,
-                    transition: selectedAnswer !== null ? 'none' : 'transform 0.1s ease-out',
+                    transform: `translate(${evasivePosition.x}px, ${evasivePosition.y}px)`,
                     pointerEvents: selectedAnswer !== null ? 'none' : 'auto'
                   }}
                 >
-                  <button
-                    onClick={() => handleAnswerClick(index)}
-                    disabled={selectedAnswer !== null}
-                    className={`
-                      w-full py-3 px-4 rounded-2xl font-semibold text-base
-                      transition-all duration-300
-                      ${selectedAnswer === null ? 'cursor-pointer' : 'cursor-default'}
-                      bg-[#FFE6F0] text-[#2C2C2C] hover:bg-[#FFD4E5]
-                      disabled:opacity-50
-                    `}
-                  >
-                    {option}
-                  </button>
-                </div>
+                  {option}
+                </button>
               );
             }
 
