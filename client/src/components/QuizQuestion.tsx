@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 /**
  * QuizQuestion Component
@@ -41,40 +41,48 @@ export default function QuizQuestion({
 }: QuizQuestionProps) {
   const [celebrationIndex, setCelebrationIndex] = useState<number | null>(null);
   const [evasiveOffset, setEvasiveOffset] = useState({ x: 0, y: 0 });
+  const prevMousePosRef = useRef({ x: 0, y: 0 });
 
   // Update evasive button position based on mouse proximity
   useEffect(() => {
+    // Only run this effect when on the last question and answer not selected
     if (!isLastQuestion || selectedAnswer !== null) {
       setEvasiveOffset({ x: 0, y: 0 });
       return;
     }
 
+    // Skip if mouse position hasn't changed
+    if (
+      prevMousePosRef.current.x === mousePos.x &&
+      prevMousePosRef.current.y === mousePos.y
+    ) {
+      return;
+    }
+
+    prevMousePosRef.current = mousePos;
+
     if (evasiveButtonRef?.current) {
       const button = evasiveButtonRef.current;
       const rect = button.getBoundingClientRect();
-      const buttonCenterX = rect.left + rect.width / 2;
       const buttonCenterY = rect.top + rect.height / 2;
 
-      const distX = mousePos.x - buttonCenterX;
       const distY = mousePos.y - buttonCenterY;
-      const distance = Math.sqrt(distX * distX + distY * distY);
+      const distance = Math.abs(distY);
 
-      // If mouse is within 200px, move the button away aggressively
-      if (distance < 200) {
-        const angle = Math.atan2(distY, distY);
-        const moveDistance = Math.max(200 - distance, 0);
-        const moveX = Math.cos(angle) * moveDistance * 2;
-        const moveY = Math.sin(angle) * moveDistance * 2;
+      // If mouse is within 150px vertically, move the button away
+      if (distance < 150) {
+        const moveDistance = Math.max(150 - distance, 0);
+        const moveY = distY > 0 ? -moveDistance * 1.5 : moveDistance * 1.5;
 
         setEvasiveOffset({
-          x: -moveX,
-          y: -moveY
+          x: 0,
+          y: moveY
         });
       } else {
         setEvasiveOffset({ x: 0, y: 0 });
       }
     }
-  }, [mousePos, isLastQuestion, selectedAnswer, evasiveButtonRef]);
+  }, [mousePos.x, mousePos.y, isLastQuestion, selectedAnswer, evasiveButtonRef]);
 
   const handleAnswerClick = (index: number) => {
     if (selectedAnswer === null) {
@@ -102,10 +110,10 @@ export default function QuizQuestion({
               return (
                 <div
                   key={index}
-                  className="relative w-full h-16"
+                  className="relative w-full"
                   ref={evasiveButtonRef}
                   style={{
-                    transform: `translate(${evasiveOffset.x}px, ${evasiveOffset.y}px)`,
+                    transform: `translateY(${evasiveOffset.y}px)`,
                     transition: selectedAnswer !== null ? 'none' : 'transform 0.1s ease-out',
                     pointerEvents: selectedAnswer !== null ? 'none' : 'auto'
                   }}
@@ -114,7 +122,7 @@ export default function QuizQuestion({
                     onClick={() => handleAnswerClick(index)}
                     disabled={selectedAnswer !== null}
                     className={`
-                      w-full py-4 px-6 rounded-2xl font-semibold text-lg
+                      w-full py-3 px-4 rounded-2xl font-semibold text-base
                       transition-all duration-300
                       ${selectedAnswer === null ? 'cursor-pointer' : 'cursor-default'}
                       bg-[#FFE6F0] text-[#2C2C2C] hover:bg-[#FFD4E5]
