@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch, Router as WouterRouter } from "wouter";
+import { useHashLocation } from "wouter/use-hash-location";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
@@ -23,17 +24,6 @@ function Router() {
 // - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
 
 function App() {
-  // Get the base path from the current location for GitHub Pages
-  const getBasePath = () => {
-    const pathname = window.location.pathname;
-    if (pathname.includes('/valentines26')) {
-      return '/valentines26';
-    }
-    return '';
-  };
-
-  const basePath = getBasePath();
-
   return (
     <ErrorBoundary>
       <ThemeProvider
@@ -42,13 +32,9 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
-          {basePath ? (
-            <WouterRouter base={basePath}>
-              <Router />
-            </WouterRouter>
-          ) : (
+          <WouterRouter hook={useHashLocation}>
             <Router />
-          )}
+          </WouterRouter>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
