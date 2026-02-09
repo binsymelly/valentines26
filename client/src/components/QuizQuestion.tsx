@@ -112,7 +112,7 @@ export default function QuizQuestion({
               return (
                 <div
                   key={index}
-                  className="relative w-full h-12 flex items-center"
+                  className="relative w-full h-12 flex items-center justify-center"
                   style={{
                     perspective: '1000px',
                     pointerEvents: selectedAnswer !== null ? 'none' : 'auto'
@@ -122,19 +122,18 @@ export default function QuizQuestion({
                     onClick={() => handleAnswerClick(index)}
                     disabled={selectedAnswer !== null}
                     className={`
-                      absolute py-2 px-3 rounded-xl font-semibold text-sm
+                      py-3 px-6 rounded-2xl font-semibold text-base
                       transition-all duration-100 ease-out
                       ${selectedAnswer === null ? 'cursor-pointer' : 'cursor-default'}
                       bg-[#FFE6F0] text-[#2C2C2C] hover:bg-[#FFD4E5]
                       disabled:opacity-50
                       whitespace-nowrap
+                      inline-block
                     `}
                     style={{
                       transform: `translate(${evasivePosition.x}px, ${evasivePosition.y}px)`,
                       pointerEvents: selectedAnswer !== null ? 'none' : 'auto',
-                      left: '50%',
-                      marginLeft: '-40px',
-                      width: '80px'
+                      minWidth: 'max-content'
                     }}
                   >
                     {option}
