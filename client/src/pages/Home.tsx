@@ -111,7 +111,7 @@ export default function Home() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [completedQuestions, setCompletedQuestions] = useState<number[]>([]);
-  const evasiveButtonRef = useRef<HTMLButtonElement | null>(null);
+  const evasiveButtonRef = useRef<HTMLDivElement | null>(null);
 
   const handleAnswerSelect = (answerIndex: number) => {
     if (selectedAnswer !== null) return; // Prevent multiple selections
@@ -213,7 +213,7 @@ export default function Home() {
             isCorrect={isCorrect}
             onAnswerSelect={handleAnswerSelect}
             isLastQuestion={currentQuestionIndex === QUIZ_QUESTIONS.length - 1}
-            evasiveButtonRef={evasiveButtonRef as React.RefObject<HTMLButtonElement>}
+            evasiveButtonRef={evasiveButtonRef as React.RefObject<HTMLDivElement>}
           />
         </div>
 

@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 
 /**
  * QuizQuestion Component
@@ -10,7 +10,7 @@ import { useState, useEffect, useRef } from 'react';
  * - Multiple choice buttons with hover effects
  * - Feedback messages with sticker reactions
  * - Media support (images/videos) for correct answers
- * - Evasive button that moves away on mouseover (inspired by roosafeed/Evasive-Button)
+ * - Evasive button that jumps away on mousemove (truly unclickable)
  */
 
 interface QuizQuestionProps {
@@ -30,7 +30,7 @@ interface QuizQuestionProps {
   isCorrect: boolean;
   onAnswerSelect: (answerIndex: number) => void;
   isLastQuestion: boolean;
-  evasiveButtonRef?: React.RefObject<HTMLButtonElement>;
+  evasiveButtonRef?: React.RefObject<HTMLDivElement>;
 }
 
 export default function QuizQuestion({
@@ -44,22 +44,46 @@ export default function QuizQuestion({
 }: QuizQuestionProps) {
   const [celebrationIndex, setCelebrationIndex] = useState<number | null>(null);
   const [evasivePosition, setEvasivePosition] = useState({ x: 0, y: 0 });
-  const localEvasiveRef = useRef<HTMLButtonElement | null>(null);
-  const buttonRef = evasiveButtonRef || localEvasiveRef;
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // Handle evasive button mouseover
-  const handleEvasiveMouseOver = () => {
-    if (selectedAnswer !== null || !isLastQuestion) return;
+  // Handle evasive button - move away from any cursor movement in the container
+  const handleContainerMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (selectedAnswer !== null || !isLastQuestion || !containerRef.current) return;
 
-    // Generate random position to move to
-    const randomX = (Math.random() - 0.5) * 300; // -150 to 150px
-    const randomY = (Math.random() - 0.5) * 300; // -150 to 150px
-    
-    setEvasivePosition({ x: randomX, y: randomY });
-  };
+    const container = containerRef.current;
+    const rect = container.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
 
-  const handleEvasiveMouseLeave = () => {
-    setEvasivePosition({ x: 0, y: 0 });
+    // Get the button element (second option)
+    const buttons = container.querySelectorAll('button, [role="button"]');
+    if (buttons.length < 2) return;
+
+    const buttonElement = buttons[1] as HTMLElement;
+    const buttonRect = buttonElement.getBoundingClientRect();
+    const buttonCenterX = buttonRect.left - rect.left + buttonRect.width / 2;
+    const buttonCenterY = buttonRect.top - rect.top + buttonRect.height / 2;
+
+    // Calculate distance from cursor to button center
+    const distX = mouseX - buttonCenterX;
+    const distY = mouseY - buttonCenterY;
+    const distance = Math.sqrt(distX * distX + distY * distY);
+
+    // If cursor is within 120px of button, move it away aggressively
+    if (distance < 120) {
+      const angle = Math.atan2(distY, distX);
+      // Move button 250px away from cursor
+      const moveX = Math.cos(angle) * -250;
+      const moveY = Math.sin(angle) * -250;
+
+      setEvasivePosition({
+        x: moveX,
+        y: moveY
+      });
+    } else {
+      // Reset position if cursor is far away
+      setEvasivePosition({ x: 0, y: 0 });
+    }
   };
 
   const handleAnswerClick = (index: number) => {
@@ -73,7 +97,7 @@ export default function QuizQuestion({
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full" ref={containerRef} onMouseMove={handleContainerMouseMove}>
       <div className="bg-white rounded-3xl shadow-soft p-8 md:p-12 animate-fade-in-up">
         {/* Question Text */}
         <h2 className="text-2xl md:text-3xl font-bold text-[#2C2C2C] mb-8 text-center leading-relaxed">
@@ -86,27 +110,36 @@ export default function QuizQuestion({
             // Evasive button for the last question's second option
             if (isLastQuestion && index === 1) {
               return (
-                <button
+                <div
                   key={index}
-                  ref={buttonRef}
-                  onClick={() => handleAnswerClick(index)}
-                  onMouseOver={handleEvasiveMouseOver}
-                  onMouseLeave={handleEvasiveMouseLeave}
-                  disabled={selectedAnswer !== null}
-                  className={`
-                    w-full py-3 px-4 rounded-2xl font-semibold text-base
-                    transition-all duration-200 ease-out
-                    ${selectedAnswer === null ? 'cursor-pointer' : 'cursor-default'}
-                    bg-[#FFE6F0] text-[#2C2C2C] hover:bg-[#FFD4E5]
-                    disabled:opacity-50 relative
-                  `}
+                  className="relative w-full h-12 flex items-center"
                   style={{
-                    transform: `translate(${evasivePosition.x}px, ${evasivePosition.y}px)`,
+                    perspective: '1000px',
                     pointerEvents: selectedAnswer !== null ? 'none' : 'auto'
                   }}
                 >
-                  {option}
-                </button>
+                  <button
+                    onClick={() => handleAnswerClick(index)}
+                    disabled={selectedAnswer !== null}
+                    className={`
+                      absolute py-2 px-3 rounded-xl font-semibold text-sm
+                      transition-all duration-100 ease-out
+                      ${selectedAnswer === null ? 'cursor-pointer' : 'cursor-default'}
+                      bg-[#FFE6F0] text-[#2C2C2C] hover:bg-[#FFD4E5]
+                      disabled:opacity-50
+                      whitespace-nowrap
+                    `}
+                    style={{
+                      transform: `translate(${evasivePosition.x}px, ${evasivePosition.y}px)`,
+                      pointerEvents: selectedAnswer !== null ? 'none' : 'auto',
+                      left: '50%',
+                      marginLeft: '-40px',
+                      width: '80px'
+                    }}
+                  >
+                    {option}
+                  </button>
+                </div>
               );
             }
 
