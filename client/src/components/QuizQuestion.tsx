@@ -10,7 +10,7 @@ import { useState, useRef } from 'react';
  * - Multiple choice buttons with hover effects
  * - Feedback messages with sticker reactions
  * - Media support (images/videos) for correct answers
- * - Evasive button that jumps away on mousemove (truly unclickable)
+ * - Evasive button with smooth, predictable movement
  */
 
 interface QuizQuestionProps {
@@ -44,9 +44,11 @@ export default function QuizQuestion({
 }: QuizQuestionProps) {
   const [celebrationIndex, setCelebrationIndex] = useState<number | null>(null);
   const [evasivePosition, setEvasivePosition] = useState({ x: 0, y: 0 });
+  const [isEvasiveActive, setIsEvasiveActive] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const evasiveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Handle evasive button - move away from any cursor movement in the container
+  // Handle evasive button - move away from cursor with smooth logic
   const handleContainerMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (selectedAnswer !== null || !isLastQuestion || !containerRef.current) return;
 
@@ -69,19 +71,32 @@ export default function QuizQuestion({
     const distY = mouseY - buttonCenterY;
     const distance = Math.sqrt(distX * distX + distY * distY);
 
-    // If cursor is within 120px of button, move it away aggressively
-    if (distance < 120) {
+    // If cursor is within 150px of button, move it away
+    if (distance < 150 && !isEvasiveActive) {
+      setIsEvasiveActive(true);
+
+      // Calculate angle away from cursor
       const angle = Math.atan2(distY, distX);
-      // Move button 250px away from cursor
-      const moveX = Math.cos(angle) * -250;
-      const moveY = Math.sin(angle) * -250;
+      // Move button 280px away from cursor in the opposite direction
+      const moveX = Math.cos(angle) * -280;
+      const moveY = Math.sin(angle) * -280;
 
       setEvasivePosition({
         x: moveX,
         y: moveY
       });
-    } else {
-      // Reset position if cursor is far away
+
+      // Clear any existing timeout
+      if (evasiveTimeoutRef.current) {
+        clearTimeout(evasiveTimeoutRef.current);
+      }
+
+      // Keep the button in evasive position for 500ms before allowing reset
+      evasiveTimeoutRef.current = setTimeout(() => {
+        setIsEvasiveActive(false);
+      }, 500);
+    } else if (distance >= 200 && !isEvasiveActive) {
+      // Reset position only when cursor is far away AND not actively evading
       setEvasivePosition({ x: 0, y: 0 });
     }
   };
@@ -123,7 +138,7 @@ export default function QuizQuestion({
                     disabled={selectedAnswer !== null}
                     className={`
                       py-3 px-6 rounded-2xl font-semibold text-base
-                      transition-all duration-100 ease-out
+                      transition-all duration-200 ease-out
                       ${selectedAnswer === null ? 'cursor-pointer' : 'cursor-default'}
                       bg-[#FFE6F0] text-[#2C2C2C] hover:bg-[#FFD4E5]
                       disabled:opacity-50
