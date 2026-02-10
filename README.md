@@ -69,10 +69,7 @@ The application will be available at `http://localhost:3000`
 
 ### Adding Your Media
 
-See [MEDIA_CONFIG.md](./MEDIA_CONFIG.md) for detailed instructions on:
-- Adding images to the final message gallery
-- Adding a video to the loading screen
-- Adding images to quiz questions
+Add images under `client/public/images/` and videos under `client/public/videos/`. You can reference them in `client/src/pages/Home.tsx` in the `QUIZ_QUESTIONS` array (e.g. `media: [{ type: 'image', src: '/images/photo.jpg' }]`) and in the final message gallery.
 
 ### Building for Production
 
@@ -94,13 +91,14 @@ pnpm preview
 
 ### GitHub Pages (Recommended)
 
-See [GITHUB_PAGES_SETUP.md](./GITHUB_PAGES_SETUP.md) for complete deployment instructions.
+The project is set up to deploy with **GitHub Actions**. The current file layout works as-is.
 
-Quick summary:
-1. Create a GitHub repository
-2. Push your code to GitHub
-3. Enable GitHub Pages in repository settings
-4. Your app will be live at `https://YOUR_USERNAME.github.io/valentines-for-melissa/`
+1. **Create a repo** named `valentines26` (so the URL is `https://YOUR_USERNAME.github.io/valentines26/`).
+2. **Push** this folder as the repo root (so `valentines26` is the repository root, not a subfolder).
+3. In the repo: **Settings → Pages** → under "Build and deployment", choose **GitHub Actions** (not "Deploy from a branch").
+4. Push to `main` (or trigger the workflow). The workflow builds the app and deploys the contents of `dist/public` to GitHub Pages.
+
+Your site will be live at `https://YOUR_USERNAME.github.io/valentines26/`.
 
 ### Other Hosting Options
 
@@ -147,8 +145,6 @@ valentines-for-melissa/
 │   │   ├── index.css               (design tokens & animations)
 │   │   └── main.tsx                (entry point)
 │   └── index.html
-├── MEDIA_CONFIG.md         (how to add images/videos)
-├── GITHUB_PAGES_SETUP.md   (deployment guide)
 └── README.md               (this file)
 ```
 
