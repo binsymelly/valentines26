@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import QuizQuestion from '@/components/QuizQuestion';
 import LoadingScreen from '@/components/LoadingScreen';
@@ -34,71 +34,73 @@ const QUIZ_QUESTIONS: QuizQuestion[] = [
   {
     id: 1,
     question: "Where did Melly become Spiderman?",
-    options: ["Huashan", "Emeishan", "Huangshan"],
-    correctAnswer: 2,
-    message: "You remembered! That was such an epic moment! 🕷️"
+    options: ["Huashan", "New York City", "West Coast Park"],
+    correctAnswer: 0,
+    message: "'No, it must look like im climbing' indeed... Such an epic moment my cheeky girlfriend!💥",
     // Uncomment and add your media:
-    // media: [
-    //   { type: 'image', src: '/images/huangshan1.jpg' },
+    media: [
+      { type: 'video', src: '/videos/spiderman.mp4' },
     //   { type: 'image', src: '/images/huangshan2.jpg' }
-    // ]
+    ]
   },
   {
     id: 2,
     question: "When did we eat the best chippies?",
-    options: ["Turkey Market", "China Mountain", "Japan Lake"],
-    correctAnswer: 0,
-    message: "Those chippies were absolutely amazing! 🍟"
-    // media: [
-    //   { type: 'image', src: '/images/chippies.jpg' }
-    // ]
+    options: ["Turkey Grand Bazaar", "E Meishan", "Lake Kawaguchiko"],
+    correctAnswer: 1,
+    message: "Those chippies were absolutely amazing! Fresh and KRISPP-EEE 🍟",
+    media: [
+      { type: 'image', src: '/images/chippies.jpg' }
+    ]
   },
   {
     id: 3,
     question: "What happened at the back of the bus in Turkey?",
-    options: ["Spill drink", "Vomit", "Boil water"],
-    correctAnswer: 1,
-    message: "Oh no, that was quite the adventure! 🚌"
-    // media: [
-    //   { type: 'image', src: '/images/bus_memory.jpg' }
-    // ]
+    options: ["Spilled our drinks", "Vomitted on the cushion", "Boiled water unattended"],
+    correctAnswer: 2,
+    message: "What were we thinking? Went from panic to acceptance, and later just ignoring it and enjoying the views. I remember how we were thinking of explaining the situation prior to boarding the bus and the RELIEF we felt when we realised all was good, CLUTCHHH!! 🚌🤙",
+    media: [
+      { type: 'image', src: '/images/pamukkale.jpg' },
+      { type: 'image', src: '/images/bus.jpg' }
+    ]
   },
   {
     id: 4,
     question: "Hottest place we've been to?",
     options: ["Chengdu", "Japan", "USA"],
     correctAnswer: 0,
-    message: "Chengdu was absolutely scorching! 🔥"
-    // media: [
-    //   { type: 'image', src: '/images/chengdu.jpg' }
-    // ]
+    message: "Chengdu was absolutely scorching! and we had to go from one entrance to another to get our bags, even the pandas were like 'bruhhhhh' 🔥",
+    media: [
+      { type: 'image', src: '/images/pandas.jpg' }
+    ]
   },
   {
     id: 5,
     question: "Scariest thing I did with you?",
-    options: ["Zipline", "Hot-air balloon", "Eating eel"],
-    correctAnswer: 1,
-    message: "That hot-air balloon ride was unforgettable! 🎈"
-    // media: [
-    //   { type: 'video', src: '/videos/balloon.mp4' }
-    // ]
+    options: ["Chairlift", "Hot-air balloon", "Eating eel noodles"],
+    correctAnswer: 0,
+    message: "The audacity to enjoy a drink on THAT chairlift! My girlfriend is a fearless legend 💪 sippies!!!",
+    media: [
+      { type: 'video', src: '/videos/chairlift.mp4' }
+    ]
   },
   {
     id: 6,
     question: "Who is our child?",
-    options: ["Alien", "Goodgood", "Zaneh"],
-    correctAnswer: 1,
-    message: "Goodgood is our precious little one! 👶"
-    // media: [
-    //   { type: 'image', src: '/images/goodgood.jpg' }
-    // ]
+    options: ["Alien", "Good-good", "Zaneh"],
+    correctAnswer: 0,
+    message: "Look at this cutie zaneh boy boy 👶 but A-LIAN is the real child hahahaha 👽 -antenna connected-",
+    media: [
+      { type: 'image', src: '/images/zaneh.jpg' },
+      { type: 'image', src: '/images/alien.jpg' }
+    ]
   },
   {
     id: 7,
-    question: "Who is the bestest bf?",
+    question: "And lastly, Who is the BESTEST bf? 😍",
     options: ["Binsy", "Someone else"],
     correctAnswer: 0,
-    message: "That's right! 💕"
+    message: "That's right! YOU HAVE NO CHOICE MUAHAHAHA💕"
   }
 ];
 
@@ -130,12 +132,6 @@ export default function Home() {
         // Last question answered correctly
         setShowFeedback(false);
         setShowLoading(true);
-        
-        // Show loading screen for 3 seconds
-        setTimeout(() => {
-          setShowLoading(false);
-          setShowFinal(true);
-        }, 3000);
       } else {
         // Move to next question
         setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -151,7 +147,14 @@ export default function Home() {
   };
 
   if (showLoading) {
-    return <LoadingScreen />;
+    return (
+      <LoadingScreen
+        onComplete={() => {
+          setShowLoading(false);
+          setShowFinal(true);
+        }}
+      />
+    );
   }
 
   if (showFinal) {

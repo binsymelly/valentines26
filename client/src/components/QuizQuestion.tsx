@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { assetUrl } from '@/lib/utils';
 import { useState, useRef } from 'react';
 
 /**
@@ -202,19 +203,22 @@ export default function QuizQuestion({
             {isCorrect && question.media && question.media.length > 0 && (
               <div className="mb-6 space-y-4">
                 {question.media.map((media, idx) => (
-                  <div key={idx} className="w-full">
+                  <div
+                    key={idx}
+                    className="w-full rounded-2xl shadow-soft bg-white/40 border border-white/60 overflow-hidden"
+                  >
                     {media.type === 'image' ? (
                       <img
-                        src={media.src}
+                        src={assetUrl(media.src)}
                         alt={`Memory ${idx + 1}`}
-                        className="w-full rounded-2xl shadow-soft object-cover max-h-96"
+                        className="w-full max-h-96 object-contain"
                       />
                     ) : (
                       <video
-                        src={media.src}
+                        src={assetUrl(media.src)}
                         controls
-                        className="w-full rounded-2xl shadow-soft max-h-96"
-                        style={{ objectFit: 'cover' }}
+                        className="w-full max-h-96"
+                        style={{ objectFit: 'contain' }}
                       />
                     )}
                   </div>

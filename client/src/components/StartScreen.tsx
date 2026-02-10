@@ -63,7 +63,7 @@ export default function StartScreen({ onStart }: StartScreenProps) {
             inline-block
           "
         >
-          Let's Begin! 🚀
+          Leeeeeeet's goooooooo!
         </button>
 
         {/* Footer message */}

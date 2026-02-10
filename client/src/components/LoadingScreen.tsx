@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { assetUrl } from '@/lib/utils';
 
 /**
  * LoadingScreen Component
@@ -10,9 +11,14 @@ import { useEffect, useState } from 'react';
  * - Celebratory message
  */
 
-export default function LoadingScreen() {
+type LoadingScreenProps = {
+  onComplete?: () => void;
+};
+
+export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
   const [progress, setProgress] = useState(0);
   const [videoDuration, setVideoDuration] = useState(3); // Default 3 seconds
+  const completeTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     // Simulate progress based on video duration
@@ -32,28 +38,52 @@ export default function LoadingScreen() {
     return () => clearInterval(interval);
   }, [videoDuration]);
 
+  useEffect(() => {
+    return () => {
+      if (completeTimerRef.current !== null) {
+        window.clearTimeout(completeTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleVideoLoadedMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     const video = e.currentTarget;
-    setVideoDuration(video.duration);
+    // Slow down ONLY the loading video
+    video.playbackRate = 0.9;
+    // Adjust progress timing to match playback rate
+    setVideoDuration(video.duration / video.playbackRate);
+  };
+
+  const handleVideoEnded = () => {
+    if (!onComplete) return;
+
+    // Pause for 1s after the video ends before moving on
+    if (completeTimerRef.current !== null) {
+      window.clearTimeout(completeTimerRef.current);
+    }
+    completeTimerRef.current = window.setTimeout(() => {
+      onComplete();
+    }, 1000);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FFF9F7] via-[#FFE6F0] to-[#E6D5F0] flex flex-col items-center justify-center px-4">
       {/* Video Container */}
-      <div className="w-full max-w-2xl mb-12 animate-fade-in-up">
+      <div className="w-full max-w-4xl lg:max-w-5xl mb-12 animate-fade-in-up">
         <div className="aspect-video bg-gradient-to-br from-[#FFB6C1] to-[#E6D5F0] rounded-3xl shadow-soft flex items-center justify-center overflow-hidden">
           {/* Video element - replace with your video path */}
           <video
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain bg-black/20"
             autoPlay
             muted
+            onEnded={handleVideoEnded}
             onLoadedMetadata={handleVideoLoadedMetadata}
             style={{
               display: 'block'
             }}
           >
             {/* Replace this with your actual video path */}
-            <source src="/videos/surprise.mp4" type="video/mp4" />
+            <source src={assetUrl('/videos/loading.mp4')} type="video/mp4" />
             <div className="text-center text-white">
               <div className="text-6xl mb-4">🎥</div>
               <p className="text-xl font-semibold">Loading something special...</p>
